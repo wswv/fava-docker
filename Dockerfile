@@ -48,13 +48,13 @@ RUN apt-get -y install cron
 # Create the log file to be able to run tail
 RUN touch /var/log/cron.log
 # Setup cron job
-RUN (crontab -l ; echo "10 23 * * * /bin/bash /myData/cron.daily" >> /var/log/cron.log") | crontab
+RUN (crontab -l ; echo "10 23 * * * /bin/bash /myData/cron.daily >> /var/log/cron.log") | crontab
 
 RUN python3 -mpip install smart_importer 
 RUN python3 -mpip install beancount_portfolio_allocation
 RUN python3 -mpip install black perl
 RUN pip install git+https://github.com/andyjscott/beancount-financequote
-RUN cpan install Finance::Quote
+RUN cpan -y install Finance::Quote
 
 ARG PYTHON_DIR
 COPY --from=build_env ${PYTHON_DIR} ${PYTHON_DIR}
