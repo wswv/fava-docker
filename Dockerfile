@@ -44,6 +44,12 @@ FROM python:${PYTHON_BASE_IMAGE}
 
 RUN apt-get update
 RUN apt-get install -y git nano build-essential gcc poppler-utils
+RUN apt-get -y install cron
+# Create the log file to be able to run tail
+RUN touch /var/log/cron.log
+# Setup cron job
+RUN (crontab -l ; echo "10 23 * * * /bin/bash /myData/cron.daily" >> /var/log/cron.log") | crontab
+
 RUN python3 -mpip install smart_importer 
 RUN python3 -mpip install beancount_portfolio_allocation
 RUN python3 -mpip install black
@@ -75,6 +81,7 @@ COPY --from=build_env \
 EXPOSE 5000
 
 ENV BEANCOUNT_INPUT_FILE ""
+ENV PYTHONPATH "/myData/myTools"
 ENV FAVA_OPTIONS "-H 0.0.0.0"
 
-CMD fava ${FAVA_OPTIONS} ${BEANCOUNT_INPUT_FILE}
+CMD cron && fava ${FAVA_OPTIONS} ${BEANCOUNT_INPUT_FILE}
