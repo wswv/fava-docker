@@ -9,3 +9,5 @@ Forked from Yegle in order to add:
 - Git
 - smart-importer
 - poppler-utils (pdftotext)
+- wget
+- cron
