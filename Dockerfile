@@ -55,7 +55,7 @@ RUN python3 -mpip install beancount_portfolio_allocation
 RUN python3 -mpip install black perl
 
 RUN pip install git+https://github.com/andyjscott/beancount-financequote
-RUN cpan install Datetime
+RUN cpan install DateTime
 RUN cpan install DateTime::Format::Strptime
 
 RUN cpan install YAML
