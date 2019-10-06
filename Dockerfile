@@ -52,11 +52,9 @@ RUN (crontab -l ; echo "10 23 * * * /bin/bash /myData/cron.daily >> /var/log/cro
 
 RUN python3 -mpip install smart_importer 
 RUN python3 -mpip install beancount_portfolio_allocation
+RUN python3 -mpip install beancount-plugins-metadata-spray
 RUN python3 -mpip install iexfinance
 RUN python3 -mpip install black
-
-RUN pip install git+https://github.com/andyjscott/beancount-financequote
-RUN cpan install DateTime::Format::Strptime
 
 RUN cpan install YAML
 RUN apt-get -y install libssl-dev libz-dev
