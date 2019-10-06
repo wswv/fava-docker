@@ -11,3 +11,4 @@ Forked from Yegle in order to add:
 - poppler-utils (pdftotext)
 - wget
 - cron
+- beancount-plugins-metadata-spray
