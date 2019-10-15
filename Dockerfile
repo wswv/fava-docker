@@ -56,11 +56,6 @@ RUN python3 -mpip install beancount-plugins-metadata-spray
 RUN python3 -mpip install iexfinance
 RUN python3 -mpip install black
 
-RUN cpan install YAML
-RUN apt-get -y install libssl-dev libz-dev
-RUN cpan install  Net::SSLeay
-RUN cpan install Finance::Quote
-
 ARG PYTHON_DIR
 COPY --from=build_env ${PYTHON_DIR} ${PYTHON_DIR}
 COPY --from=build_env /usr/local/bin/fava /usr/local/bin/fava
