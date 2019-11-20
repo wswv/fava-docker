@@ -11,7 +11,7 @@ FROM node:${NODE_BUILD_IMAGE} as node_build_env
 ARG FAVA_VERSION
 
 WORKDIR /tmp/build
-RUN git clone https://github.com/grostim/fava
+RUN git clone https://github.com/beancount/fava
 WORKDIR /tmp/build/fava
 RUN git checkout ${FAVA_VERSION}
 RUN make
