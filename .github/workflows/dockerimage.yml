@@ -17,7 +17,6 @@ on:
 env:
   # TODO: Change variable to your image's name.
   IMAGE_NAME: grostim/fava-docker
-  GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
 
 jobs:
   # Run tests.
@@ -27,8 +26,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Docker Lint
-        uses: luke142367/Docker-Lint-Action@v1.0.1
       - name: Run tests
         run: |
           if [ -f docker-compose.test.yml ]; then
