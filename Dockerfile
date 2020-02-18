@@ -54,6 +54,7 @@ RUN python3 -mpip install -U pip
 RUN python3 -mpip install smart_importer 
 RUN python3 -mpip install beancount_portfolio_allocation
 RUN python3 -mpip install beancount-plugins-metadata-spray
+RUN python3 -mpip install beancount-interpolate
 RUN python3 -mpip install iexfinance
 RUN python3 -mpip install black
 RUN python3 -mpip install werkzeug
