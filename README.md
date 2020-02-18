@@ -12,3 +12,4 @@ Forked from Yegle in order to add:
 - wget
 - cron
 - beancount-plugins-metadata-spray
+- beancount interpolate (https://github.com/Akuukis/beancount-interpolate)
