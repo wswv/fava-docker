@@ -58,6 +58,8 @@ RUN python3 -mpip install beancount-interpolate
 RUN python3 -mpip install iexfinance
 RUN python3 -mpip install black
 RUN python3 -mpip install werkzeug
+RUN python3 -mpip install argh
+RUN python3 -mpip install argcomplete
 WORKDIR /tmp/build
 RUN git clone https://github.com/redstreet/fava_investor.git
 RUN pip install ./fava_investor
