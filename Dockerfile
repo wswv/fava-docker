@@ -1,56 +1,46 @@
-# we use SOURCE_BRANCH to indicate the fava version.
-ARG SOURCE_BRANCH=master
-ARG FAVA_VERSION=${SOURCE_BRANCH}
-ENV FAVA_VERSION=${SOURCE_BRANCH:-v1.16}
 ARG BEANCOUNT_VERSION=2.3.3
-ARG NODE_BUILD_IMAGE=10.16.0-stretch
-ARG PYTHON_BUILD_IMAGE=3.7.3-stretch
-ARG PYTHON_BASE_IMAGE=3.7.3-slim
-ARG PYTHON_DIR=/usr/local/lib/python3.7/site-packages
+ARG NODE_BUILD_IMAGE=10.17.0-buster
 
 FROM node:${NODE_BUILD_IMAGE} as node_build_env
-ARG FAVA_VERSION
+ARG SOURCE_BRANCH
+ENV FAVA_VERSION=${SOURCE_BRANCH:-v1.16}
 
 WORKDIR /tmp/build
 RUN git clone https://github.com/beancount/fava
+
 WORKDIR /tmp/build/fava
 RUN git checkout ${FAVA_VERSION}
 RUN make
 RUN make mostlyclean
 
-FROM python:${PYTHON_BUILD_IMAGE} as build_env
+FROM debian:buster as build_env
 ARG BEANCOUNT_VERSION
-ARG PYTHON_DIR
-
-ENV BEANCOUNT_URL https://bitbucket.org/blais/beancount/get/${BEANCOUNT_VERSION}.tar.gz
 
 RUN apt-get update
-RUN apt-get install -y build-essential libxml2-dev libxslt-dev
+RUN apt-get install -y build-essential libxml2-dev libxslt-dev curl \
+        python3 libpython3-dev python3-pip git python3-venv
+
+
+ENV PATH "/app/bin:$PATH"
+RUN python3 -mvenv /app
+RUN pip3 install -U pip setuptools
+COPY --from=node_build_env /tmp/build/fava /tmp/build/fava
 
 WORKDIR /tmp/build
+RUN git clone https://github.com/beancount/beancount
 
-RUN curl -J -L ${BEANCOUNT_URL} -o beancount-${BEANCOUNT_VERSION}.tar.gz
-RUN tar xvf beancount-${BEANCOUNT_VERSION}.tar.gz
-RUN python3 -mpip install ./beancount-*
+WORKDIR /tmp/build/beancount
+RUN git checkout ${BEANCOUNT_VERSION}
 
-COPY --from=node_build_env /tmp/build/fava /tmp/build/fava
-RUN python3 -mpip install ./fava
+RUN CFLAGS=-s pip3 install -U /tmp/build/beancount
+RUN pip3 install -U /tmp/build/fava
 RUN python3 -mpip install pytest
-
-RUN find ${PYTHON_DIR} -name *.so -print0|xargs -0 strip -v
-RUN find ${PYTHON_DIR} -name __pycache__ -exec rm -rf -v {} +
-RUN python3 -mpip uninstall -y wheel pip
-
-FROM python:${PYTHON_BASE_IMAGE}
-
 RUN apt-get update
 RUN apt-get install -y git nano build-essential gcc poppler-utils wget
 RUN apt-get -y install cron
-# Create the log file to be able to run tail
 RUN touch /var/log/cron.log
 # Setup cron job
 RUN (crontab -l ; echo "10 23 * * * /bin/bash /myData/cron.daily > /myData/cron.log 2>&1") | crontab
-
 RUN python3 -mpip install -U pip 
 RUN python3 -mpip install smart_importer 
 RUN python3 -mpip install beancount_portfolio_allocation
@@ -65,34 +55,25 @@ WORKDIR /tmp/build
 RUN git clone https://github.com/redstreet/fava_investor.git
 RUN pip install ./fava_investor
 
-ARG PYTHON_DIR
-COPY --from=build_env ${PYTHON_DIR} ${PYTHON_DIR}
-COPY --from=build_env /usr/local/bin/fava /usr/local/bin/fava
-# list of beancount binaries available in
-# https://bitbucket.org/blais/beancount/src/default/setup.py
-COPY --from=build_env \
-            /usr/local/bin/bean-bake \
-            /usr/local/bin/bean-check \
-            /usr/local/bin/bean-doctor \
-            /usr/local/bin/bean-example \
-            /usr/local/bin/bean-format \
-            /usr/local/bin/bean-price \
-            /usr/local/bin/bean-query \
-            /usr/local/bin/bean-report \
-            /usr/local/bin/bean-sql \
-            /usr/local/bin/bean-web \
-            /usr/local/bin/bean-identify \
-            /usr/local/bin/bean-extract \
-            /usr/local/bin/bean-file \
-            /usr/local/bin/treeify \
-            /usr/local/bin/upload-to-sheets \
-            /usr/local/bin/
+RUN find /app -name __pycache__ -exec rm -rf -v {} +
+
+FROM gcr.io/distroless/python3-debian10
+COPY --from=build_env /app /app
 
 # Default fava port number
 EXPOSE 5000
 
+ENV BEANCOUNT_FILE ""
 ENV BEANCOUNT_INPUT_FILE ""
 ENV PYTHONPATH "/myData/myTools"
 ENV FAVA_OPTIONS "-H 0.0.0.0"
 
+# Required by Click library.
+# See https://click.palletsprojects.com/en/7.x/python3/
+ENV LC_ALL "C.UTF-8"
+ENV LANG "C.UTF-8"
+ENV FAVA_HOST "0.0.0.0"
+ENV PATH "/app/bin:$PATH"
+
+ENTRYPOINT ["fava"]
 CMD cron && fava ${FAVA_OPTIONS} ${BEANCOUNT_INPUT_FILE}
