@@ -34,6 +34,12 @@ RUN git checkout ${BEANCOUNT_VERSION}
 
 RUN CFLAGS=-s pip3 install -U /tmp/build/beancount
 RUN pip3 install -U /tmp/build/fava
+
+
+RUN find /app -name __pycache__ -exec rm -rf -v {} +
+
+FROM gcr.io/distroless/python3-debian10
+COPY --from=build_env /app /app
 RUN python3 -mpip install pytest
 RUN apt-get update
 RUN apt-get install -y git nano build-essential gcc poppler-utils wget
@@ -54,11 +60,6 @@ RUN python3 -mpip install argcomplete
 WORKDIR /tmp/build
 RUN git clone https://github.com/redstreet/fava_investor.git
 RUN pip install ./fava_investor
-
-RUN find /app -name __pycache__ -exec rm -rf -v {} +
-
-FROM gcr.io/distroless/python3-debian10
-COPY --from=build_env /app /app
 
 # Default fava port number
 EXPOSE 5000
