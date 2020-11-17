@@ -3,7 +3,7 @@ ARG NODE_BUILD_IMAGE=10.17.0-buster
 
 FROM node:${NODE_BUILD_IMAGE} as node_build_env
 ARG SOURCE_BRANCH
-ENV FAVA_VERSION=${SOURCE_BRANCH:-v1.16}
+ENV FAVA_VERSION=${SOURCE_BRANCH:-v1.17}
 
 WORKDIR /tmp/build
 RUN git clone https://github.com/beancount/fava
@@ -35,39 +35,17 @@ RUN git checkout ${BEANCOUNT_VERSION}
 RUN CFLAGS=-s pip3 install -U /tmp/build/beancount
 RUN pip3 install -U /tmp/build/fava
 
+RUN pip3 uninstall -y pip
 
 RUN find /app -name __pycache__ -exec rm -rf -v {} +
 
 FROM gcr.io/distroless/python3-debian10
 COPY --from=build_env /app /app
-RUN python3 -mpip install pytest
-RUN apt-get update
-RUN apt-get install -y git nano build-essential gcc poppler-utils wget
-RUN apt-get -y install cron
-RUN touch /var/log/cron.log
-# Setup cron job
-RUN (crontab -l ; echo "10 23 * * * /bin/bash /myData/cron.daily > /myData/cron.log 2>&1") | crontab
-RUN python3 -mpip install -U pip 
-RUN python3 -mpip install smart_importer 
-RUN python3 -mpip install beancount_portfolio_allocation
-RUN python3 -mpip install beancount-plugins-metadata-spray
-RUN python3 -mpip install beancount-interpolate
-RUN python3 -mpip install iexfinance
-RUN python3 -mpip install black
-RUN python3 -mpip install werkzeug
-RUN python3 -mpip install argh
-RUN python3 -mpip install argcomplete
-WORKDIR /tmp/build
-RUN git clone https://github.com/redstreet/fava_investor.git
-RUN pip install ./fava_investor
 
 # Default fava port number
 EXPOSE 5000
 
 ENV BEANCOUNT_FILE ""
-ENV BEANCOUNT_INPUT_FILE ""
-ENV PYTHONPATH "/myData/myTools"
-ENV FAVA_OPTIONS "-H 0.0.0.0"
 
 # Required by Click library.
 # See https://click.palletsprojects.com/en/7.x/python3/
@@ -75,5 +53,5 @@ ENV LC_ALL "C.UTF-8"
 ENV LANG "C.UTF-8"
 ENV FAVA_HOST "0.0.0.0"
 ENV PATH "/app/bin:$PATH"
-#ENTRYPOINT ["fava"]
-ENTRYPOINT cron && fava ${FAVA_OPTIONS} ${BEANCOUNT_FILE}
+
+ENTRYPOINT ["fava"]
