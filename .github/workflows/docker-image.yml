@@ -37,38 +37,3 @@ jobs:
           else
             docker build . --file Dockerfile
           fi
-          
-  # On push uniquement les pull - on tagge master en latest
-  push_latest:
-    # Ensure test job passes before pushing image.
-    needs: test
-
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: mr-smithers-excellent/docker-build-push@v2
-        with:
-          image: ${IMAGE_NAME}
-          tag: latest
-          registry: registry-1.docker.io
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-  # Les releases sont tagguées avc le num de version
-  push_release:
-    # Ensure test job passes before pushing image.
-    needs: test
-
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref != 'refs/heads/master'
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: mr-smithers-excellent/docker-build-push@v2
-        with:
-          image: ${IMAGE_NAME}
-          registry: registry-1.docker.io
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
